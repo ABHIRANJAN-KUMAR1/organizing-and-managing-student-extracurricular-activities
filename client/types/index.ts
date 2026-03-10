@@ -18,6 +18,47 @@ export interface Category {
   createdAt: string;
 }
 
+// Feedback interface
+export interface Feedback {
+  id: string;
+  userId: string;
+  userName: string;
+  activityId: string;
+  overallRating: number;
+  organizationRating: number;
+  contentRating: number;
+  comment?: string;
+  createdAt: string;
+}
+
+// Check-in interface
+export interface CheckIn {
+  id: string;
+  userId: string;
+  userName: string;
+  activityId: string;
+  checkedInAt: string;
+  checkedInBy: string;
+}
+
+// User Notification Settings
+export interface NotificationSettings {
+  userId: string;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  activityReminders: boolean;
+  broadcastMessages: boolean;
+  registrationUpdates: boolean;
+}
+
+// Activity Tag
+export interface ActivityTag {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
 export interface Activity {
   id: string;
   title: string;
@@ -33,6 +74,15 @@ export interface Activity {
   createdBy: string; // Admin user ID
   createdAt: string;
   reminderSent?: boolean; // Whether reminder has been sent
+  // New fields
+  tags?: string[]; // Custom tags for activities
+  requiresApproval?: boolean; // Admin needs to approve registrations
+  approvedParticipants?: string[]; // Approved user IDs
+  pendingParticipants?: string[]; // Pending approval user IDs
+  rejectedParticipants?: string[]; // Rejected user IDs
+  checkIns?: CheckIn[]; // Check-in records
+  feedbacks?: Feedback[]; // Feedback submissions
+  photos?: ActivityPhoto[]; // Photo gallery
 }
 
 export interface Comment {
@@ -55,10 +105,91 @@ export interface Rating {
 export interface Notification {
   id: string;
   userId?: string;
+  targetRole?: "admin" | "student";
   title: string;
   message: string;
   type: "info" | "success" | "warning" | "error";
   read: boolean;
+  createdAt: string;
+  isBroadcast?: boolean; // For broadcast messages
+}
+
+// Activity Reminder
+export interface Reminder {
+  id: string;
+  activityId: string;
+  userId: string;
+  reminderTime: string; // When to send reminder
+  sent: boolean;
+  createdAt: string;
+}
+
+// Favorite Activity
+export interface FavoriteActivity {
+  id: string;
+  activityId: string;
+  userId: string;
+  addedAt: string;
+}
+
+// Activity Photo
+export interface ActivityPhoto {
+  id: string;
+  activityId: string;
+  url: string;
+  caption?: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+// Achievement/Badge Types
+export type BadgeType = 
+  | "first_activity"
+  | "five_activities"
+  | "ten_activities"
+  | "twenty_activities"
+  | "category_explorer"
+  | "social_butterfly"
+  | "early_bird"
+  | "consistent"
+  | "sports_star"
+  | "culture_vulture";
+
+export interface Achievement {
+  id: string;
+  type: BadgeType;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  earnedAt?: string;
+}
+
+export interface UserAchievement {
+  id: string;
+  userId: string;
+  achievementType: BadgeType;
+  earnedAt: string;
+}
+
+// Certificate
+export interface Certificate {
+  id: string;
+  activityId: string;
+  activityTitle: string;
+  userId: string;
+  userName: string;
+  issueDate: string;
+  activityDate: string;
+}
+
+// Broadcast Message
+export interface BroadcastMessage {
+  id: string;
+  title: string;
+  message: string;
+  targetRole: "all" | "admin" | "student";
+  createdBy: string;
   createdAt: string;
 }
 
@@ -76,10 +207,13 @@ export interface ActivityHistoryEntry {
 export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (user: User) => void;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => void;
-  register: (user: User) => void;
-  verifyEmail: (code: string) => boolean;
+  register: (email: string, name: string, password: string, role?: string) => Promise<User>;
+  verifyEmail: (code: string) => Promise<boolean>;
+  updateProfile: (data: { name?: string; email?: string }) => Promise<User>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 export interface ActivityContextType {
@@ -100,11 +234,19 @@ export interface ActivityContextType {
   categories: Category[];
   addCategory: (category: Category) => void;
   deleteCategory: (id: string) => void;
+  // New features
+  favorites: string[];
+  addFavorite: (userId: string, activityId: string) => void;
+  removeFavorite: (userId: string, activityId: string) => void;
+  isFavorite: (userId: string, activityId: string) => boolean;
+  getFavoriteActivities: (userId: string) => Activity[];
 }
 
 export interface NotificationContextType {
   notifications: Notification[];
   addNotification: (notification: Omit<Notification, "id" | "createdAt" | "read">) => void;
+  addBroadcastNotification: (title: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
+  notifyAdminOfRegistration: (studentName: string, activityTitle: string) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;

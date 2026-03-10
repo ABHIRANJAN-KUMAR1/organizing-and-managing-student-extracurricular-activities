@@ -5,15 +5,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { ActivityProvider } from "@/context/ActivityContext";
+import { AchievementProvider } from "@/context/AchievementContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 
-// Pages
+
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AdminRegister from "./pages/AdminRegister";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import Activities from "./pages/Activities";
@@ -30,6 +32,14 @@ import EmailVerify from "./pages/EmailVerify";
 import CategoryManagement from "./pages/CategoryManagement";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
+import ActivitiesCalendar from "./pages/ActivitiesCalendar";
+import Broadcast from "./pages/Broadcast";
+import Favorites from "./pages/Favorites";
+import CheckIn from "./pages/CheckIn";
+import Feedback from "./pages/Feedback";
+import TagsManagement from "./pages/TagsManagement";
+import NotificationSettings from "./pages/NotificationSettings";
+import Achievements from "./pages/Achievements";
 
 // Helper component to route to appropriate dashboard
 const DashboardRouter = () => {
@@ -50,6 +60,7 @@ const AppRoutes = () => (
     <Route path="/" element={<Index />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
+    <Route path="/admin-register" element={<AdminRegister />} />
     <Route path="/password-reset" element={<PasswordReset />} />
     <Route path="/new-password" element={<NewPassword />} />
     <Route path="/email-verify" element={<EmailVerify />} />
@@ -68,6 +79,36 @@ const AppRoutes = () => (
         <Analytics />
       </ProtectedRoute>
     } />
+    <Route path="/broadcast" element={
+      <ProtectedRoute requiredRole="admin">
+        <Broadcast />
+      </ProtectedRoute>
+    } />
+    <Route path="/check-in" element={
+      <ProtectedRoute requiredRole="admin">
+        <CheckIn />
+      </ProtectedRoute>
+    } />
+    <Route path="/tags" element={
+      <ProtectedRoute requiredRole="admin">
+        <TagsManagement />
+      </ProtectedRoute>
+    } />
+    <Route path="/notification-settings" element={
+      <ProtectedRoute>
+        <NotificationSettings />
+      </ProtectedRoute>
+    } />
+    <Route path="/feedback/:id" element={
+      <ProtectedRoute requiredRole="student">
+        <Feedback />
+      </ProtectedRoute>
+    } />
+    <Route path="/achievements" element={
+      <ProtectedRoute requiredRole="student">
+        <Achievements />
+      </ProtectedRoute>
+    } />
 
     {/* Protected Routes */}
     <Route
@@ -79,10 +120,26 @@ const AppRoutes = () => (
       }
     />
     <Route
+      path="/admin"
+      element={
+        <ProtectedRoute requiredRole="admin">
+          <AdminDashboard />
+        </ProtectedRoute>
+      }
+    />
+    <Route
       path="/activities"
       element={
         <ProtectedRoute>
           <Activities />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/activities/calendar"
+      element={
+        <ProtectedRoute>
+          <ActivitiesCalendar />
         </ProtectedRoute>
       }
     />
@@ -119,6 +176,14 @@ const AppRoutes = () => (
       }
     />
     <Route
+      path="/favorites"
+      element={
+        <ProtectedRoute requiredRole="student">
+          <Favorites />
+        </ProtectedRoute>
+      }
+    />
+    <Route
       path="/settings"
       element={
         <ProtectedRoute>
@@ -149,22 +214,24 @@ const AppRoutes = () => (
 );
 
 const App = () => (
-  <ThemeProvider>
-    <NotificationProvider>
-      <AuthProvider>
+<ThemeProvider>
+    <AuthProvider>
+      <NotificationProvider>
         <ActivityProvider>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </TooltipProvider>
-          </QueryClientProvider>
+          <AchievementProvider>
+            <QueryClientProvider client={queryClient}>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </TooltipProvider>
+            </QueryClientProvider>
+          </AchievementProvider>
         </ActivityProvider>
-      </AuthProvider>
-    </NotificationProvider>
+      </NotificationProvider>
+    </AuthProvider>
   </ThemeProvider>
 );
 

@@ -1,0 +1,60 @@
+[
+  {
+    "id": "admin_1",
+    "email": "admin@activityhub.com",
+    "name": "Admin",
+    "password": "admin123",
+    "role": "admin",
+    "isVerified": true,
+    "createdAt": "2026-03-08T02:09:45.658Z"
+  },
+  {
+    "id": "student_1",
+    "email": "student@activityhub.com",
+    "name": "Student",
+    "password": "student123",
+    "role": "student",
+    "isVerified": true,
+    "createdAt": "2026-03-08T02:09:45.659Z"
+  },
+  {
+    "id": "user_1773121443713",
+    "email": "abhiranjansinghsci@gmail.com",
+    "name": "sohan",
+    "password": "123456",
+    "role": "admin",
+    "isVerified": true,
+    "verificationCode": "ya3ixh",
+    "createdAt": "2026-03-10T05:44:03.713Z"
+  },
+  {
+    "id": "user_1773122259066",
+    "email": "2400030581@kluniversity.in",
+    "name": "rohan",
+    "password": "123456",
+    "role": "student",
+    "isVerified": false,
+    "verificationCode": "h4rmrh",
+    "createdAt": "2026-03-10T05:57:39.066Z"
+  },
+  {
+    "id": "user_1773122299571",
+    "email": "2400030582@kluniversity.in",
+    "name": "himanshu",
+    "password": "123456",
+    "role": "student",
+    "isVerified": false,
+    "verificationCode": "uuamn4",
+    "createdAt": "2026-03-10T05:58:19.571Z"
+  },
+  {
+    "id": "user_1773122343630",
+    "email": "2400030583@kluniversity.in",
+    "name": "john",
+    "password": "123456",
+    "role": "student",
+    "isVerified": false,
+    "verificationCode": "cbpuzj",
+    "createdAt": "2026-03-10T05:59:03.630Z"
+  }
+]

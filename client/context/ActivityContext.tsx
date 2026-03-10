@@ -7,6 +7,7 @@ const ActivityContext = createContext<ActivityContextType | undefined>(undefined
 const STORAGE_KEY = "activities";
 const CATEGORIES_KEY = "categories";
 const HISTORY_KEY = "activity_history";
+const FAVORITES_KEY = "favorites";
 
 // Initialize with some dummy data
 const generateDummyActivities = (): Activity[] => [
@@ -81,8 +82,54 @@ const generateDummyCategories = (): Category[] => [
 export const ActivityProvider = ({ children }: { children: ReactNode }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
-// Load activities from localStorage on mount
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const storedFavorites = localStorage.getItem(FAVORITES_KEY);
+    if (storedFavorites) {
+      try {
+        setFavorites(JSON.parse(storedFavorites));
+      } catch (error) {
+        console.error("Failed to parse stored favorites:", error);
+      }
+    }
+  }, []);
+
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+  }, [favorites]);
+
+  // Add favorite function
+  const addFavorite = (userId: string, activityId: string) => {
+    const favoriteKey = `${userId}_${activityId}`;
+    if (!favorites.includes(favoriteKey)) {
+      setFavorites((prev) => [...prev, favoriteKey]);
+    }
+  };
+
+  // Remove favorite function
+  const removeFavorite = (userId: string, activityId: string) => {
+    const favoriteKey = `${userId}_${activityId}`;
+    setFavorites((prev) => prev.filter((f) => f !== favoriteKey));
+  };
+
+  // Check if activity is favorite
+  const isFavorite = (userId: string, activityId: string): boolean => {
+    const favoriteKey = `${userId}_${activityId}`;
+    return favorites.includes(favoriteKey);
+  };
+
+  // Get favorite activities for a user
+  const getFavoriteActivities = (userId: string): Activity[] => {
+    const userFavorites = favorites.filter((f) => f.startsWith(`${userId}_`));
+    return activities.filter((activity) =>
+      userFavorites.some((f) => f.endsWith(`_${activity.id}`))
+    );
+  };
+
+  // Load activities from localStorage on mount
   useEffect(() => {
     const storedActivities = localStorage.getItem(STORAGE_KEY);
     if (storedActivities) {
@@ -175,14 +222,99 @@ export const ActivityProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const joinWaitlist = (userId: string, activityId: string) => {
+    setActivities((prev) =>
+      prev.map((activity) => {
+        if (activity.id === activityId) {
+          const waitlist = new Set(activity.waitlist);
+          waitlist.add(userId);
+          return {
+            ...activity,
+            waitlist: Array.from(waitlist),
+          };
+        }
+        return activity;
+      })
+    );
+  };
+
+  const leaveWaitlist = (userId: string, activityId: string) => {
+    setActivities((prev) =>
+      prev.map((activity) => {
+        if (activity.id === activityId) {
+          return {
+            ...activity,
+            waitlist: activity.waitlist.filter((id) => id !== userId),
+          };
+        }
+        return activity;
+      })
+    );
+  };
+
   const getActivity = (id: string): Activity | undefined => {
     return activities.find((activity) => activity.id === id);
   };
 
-const getUserActivities = (userId: string): Activity[] => {
+  const getUserActivities = (userId: string): Activity[] => {
     return activities.filter((activity) =>
       activity.currentParticipants.includes(userId)
     );
+  };
+
+  const addComment = (activityId: string, comment: Comment) => {
+    setActivities((prev) =>
+      prev.map((activity) => {
+        if (activity.id === activityId) {
+          return {
+            ...activity,
+            comments: [...activity.comments, comment],
+          };
+        }
+        return activity;
+      })
+    );
+  };
+
+  const deleteComment = (activityId: string, commentId: string) => {
+    setActivities((prev) =>
+      prev.map((activity) => {
+        if (activity.id === activityId) {
+          return {
+            ...activity,
+            comments: activity.comments.filter((c) => c.id !== commentId),
+          };
+        }
+        return activity;
+      })
+    );
+  };
+
+  const addRating = (activityId: string, rating: Rating) => {
+    setActivities((prev) =>
+      prev.map((activity) => {
+        if (activity.id === activityId) {
+          return {
+            ...activity,
+            ratings: [...activity.ratings, rating],
+          };
+        }
+        return activity;
+      })
+    );
+  };
+
+  const getUserActivityHistory = (userId: string): ActivityHistoryEntry[] => {
+    const stored = localStorage.getItem(HISTORY_KEY);
+    if (stored) {
+      try {
+        const history = JSON.parse(stored);
+        return history.filter((entry: ActivityHistoryEntry) => entry.userId === userId);
+      } catch {
+        return [];
+      }
+    }
+    return [];
   };
 
   const addCategory = (category: Category) => {
@@ -205,11 +337,22 @@ const getUserActivities = (userId: string): Activity[] => {
         deleteActivity,
         registerForActivity,
         unregisterFromActivity,
+        joinWaitlist,
+        leaveWaitlist,
+        addComment,
+        deleteComment,
+        addRating,
         getActivity,
         getUserActivities,
+        getUserActivityHistory,
         categories,
         addCategory,
         deleteCategory,
+        favorites,
+        addFavorite,
+        removeFavorite,
+        isFavorite,
+        getFavoriteActivities,
       }}
     >
       {children}

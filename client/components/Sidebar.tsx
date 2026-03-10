@@ -13,6 +13,13 @@ import {
   Folder,
   User,
   BarChart3,
+  Calendar,
+  Bell,
+  Heart,
+  ClipboardCheck,
+  Tags,
+  BellRing,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -33,7 +40,12 @@ export const Sidebar = () => {
         {
           name: "Activities",
           path: "/activities",
-          icon: Activity,
+          icon: BookOpen,
+        },
+        {
+          name: "Calendar",
+          path: "/activities/calendar",
+          icon: Calendar,
         },
         {
           name: "Categories",
@@ -51,6 +63,21 @@ export const Sidebar = () => {
           icon: ArrowRightLeft,
         },
         {
+          name: "Broadcast",
+          path: "/broadcast",
+          icon: Bell,
+        },
+        {
+          name: "Check-In",
+          path: "/check-in",
+          icon: ClipboardCheck,
+        },
+        {
+          name: "Tags",
+          path: "/tags",
+          icon: Tags,
+        },
+        {
           name: "Analytics",
           path: "/analytics",
           icon: BarChart3,
@@ -65,7 +92,12 @@ export const Sidebar = () => {
         {
           name: "Activities",
           path: "/activities",
-          icon: BookOpen,
+          icon: Activity,
+        },
+        {
+          name: "Calendar",
+          path: "/activities/calendar",
+          icon: Calendar,
         },
         {
           name: "My Activities",
@@ -73,9 +105,24 @@ export const Sidebar = () => {
           icon: Activity,
         },
         {
+          name: "Favorites",
+          path: "/favorites",
+          icon: Heart,
+        },
+        {
+          name: "Achievements",
+          path: "/achievements",
+          icon: Trophy,
+        },
+        {
           name: "Profile",
           path: "/profile",
           icon: User,
+        },
+        {
+          name: "Notifications",
+          path: "/notification-settings",
+          icon: BellRing,
         },
       ];
 

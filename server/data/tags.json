@@ -1,0 +1,26 @@
+[
+  {
+    "id": "tag_1",
+    "name": "Indoor",
+    "color": "#3b82f6",
+    "createdAt": "2026-03-08T02:09:45.656Z"
+  },
+  {
+    "id": "tag_2",
+    "name": "Outdoor",
+    "color": "#10b981",
+    "createdAt": "2026-03-08T02:09:45.656Z"
+  },
+  {
+    "id": "tag_3",
+    "name": "Online",
+    "color": "#8b5cf6",
+    "createdAt": "2026-03-08T02:09:45.656Z"
+  },
+  {
+    "id": "tag_4",
+    "name": "Free",
+    "color": "#f59e0b",
+    "createdAt": "2026-03-08T02:09:45.656Z"
+  }
+]

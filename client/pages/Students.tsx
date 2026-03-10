@@ -1,19 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useActivities } from "@/context/ActivityContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users } from "lucide-react";
+import { Search, Users, RefreshCw } from "lucide-react";
 import { User } from "@/types";
 
 export default function Students() {
   const { activities } = useActivities();
   const [searchQuery, setSearchQuery] = useState("");
+  const [students, setStudents] = useState<User[]>([]);
 
-  // Get all registered students from localStorage
-  const allStudents: User[] = JSON.parse(localStorage.getItem("users") || "[]");
-  const students = allStudents.filter((user) => user.role === "student");
+  // Load students from localStorage
+  useEffect(() => {
+    const loadStudents = () => {
+      const allUsers: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+      const studentList = allUsers.filter((user) => user.role === "student");
+      setStudents(studentList);
+    };
+    
+    loadStudents();
+    
+    // Listen for storage changes (when user registers in another tab)
+    window.addEventListener('storage', loadStudents);
+    return () => window.removeEventListener('storage', loadStudents);
+  }, []);
 
   // Filter students based on search query
   const filteredStudents = students.filter(
@@ -50,9 +62,19 @@ export default function Students() {
               View and manage all registered students
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-4 py-2">
-            <Users className="w-5 h-5 text-muted-foreground" />
-            <span className="font-semibold text-foreground">{students.length} Students</span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => {
+              const allUsers: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+              const studentList = allUsers.filter((user) => user.role === "student");
+              setStudents(studentList);
+            }}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-4 py-2">
+              <Users className="w-5 h-5 text-muted-foreground" />
+              <span className="font-semibold text-foreground">{students.length} Students</span>
+            </div>
           </div>
         </div>
 

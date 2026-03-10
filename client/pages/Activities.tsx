@@ -6,27 +6,53 @@ import { useActivities } from "@/context/ActivityContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, Filter, Download } from "lucide-react";
 import { toast } from "sonner";
 import { ActivityCategory } from "@/types";
+import { exportActivitiesListToPDF } from "@/lib/pdfExport";
 
 export default function Activities() {
   const navigate = useNavigate();
-  const { activities, registerForActivity, unregisterFromActivity, deleteActivity } = useActivities();
+  const { activities, registerForActivity, unregisterFromActivity, deleteActivity, joinWaitlist, leaveWaitlist, categories, addFavorite, removeFavorite, isFavorite } = useActivities();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | "All">("All");
+  const [dateFilter, setDateFilter] = useState<string>("all");
+  const [venueFilter, setVenueFilter] = useState<string>("all");
 
   const isAdmin = user?.role === "admin";
+
+  // Get unique venues for filter
+  const uniqueVenues = [...new Set(activities.map(a => a.venue))];
 
   // Filter activities
   const filtered = activities.filter((activity) => {
     const matchesSearch =
       activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" || activity.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+      activity.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      activity.venue.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = selectedCategory === "All" || activity.category === selectedCategory;
+    
+    // Date filter
+    const activityDate = new Date(activity.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let matchesDate = true;
+    if (dateFilter === "upcoming") {
+      matchesDate = activityDate > today;
+    } else if (dateFilter === "past") {
+      matchesDate = activityDate < today;
+    } else if (dateFilter === "today") {
+      matchesDate = activityDate.toDateString() === today.toDateString();
+    }
+    
+    // Venue filter
+    const matchesVenue = venueFilter === "all" || activity.venue === venueFilter;
+    
+    return matchesSearch && matchesCategory && matchesDate && matchesVenue;
   });
 
   const handleRegister = (activityId: string) => {
@@ -43,6 +69,32 @@ export default function Activities() {
     }
   };
 
+  const handleJoinWaitlist = (activityId: string) => {
+    if (user) {
+      joinWaitlist(user.id, activityId);
+      toast.success("Added to waitlist! We'll notify you if a spot opens up.");
+    }
+  };
+
+  const handleLeaveWaitlist = (activityId: string) => {
+    if (user) {
+      leaveWaitlist(user.id, activityId);
+      toast.success("Removed from waitlist");
+    }
+  };
+
+  const handleToggleFavorite = (activityId: string) => {
+    if (user) {
+      if (isFavorite(user.id, activityId)) {
+        removeFavorite(user.id, activityId);
+        toast.success("Removed from favorites");
+      } else {
+        addFavorite(user.id, activityId);
+        toast.success("Added to favorites!");
+      }
+    }
+  };
+
   const handleDelete = (activityId: string) => {
     deleteActivity(activityId);
     toast.success("Activity deleted successfully");
@@ -52,7 +104,32 @@ export default function Activities() {
     navigate(`/activities/${activityId}/edit`);
   };
 
-  const categories: (ActivityCategory | "All")[] = ["All", "Clubs", "Sports", "Events"];
+  // Get all category names from context
+  const allCategories = ["All", ...categories.map(c => c.name), "Clubs", "Sports", "Events", "Workshops", "Seminar", "Cultural"];
+  const uniqueCategories = [...new Set(allCategories)];
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = ["Title", "Category", "Date", "Venue", "Participants", "Max Participants"];
+    const rows = filtered.map(a => [
+      a.title,
+      a.category,
+      a.date,
+      a.venue,
+      a.currentParticipants.length,
+      a.maxParticipants
+    ]);
+    
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "activities.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Activities exported to CSV!");
+  };
 
   return (
     <Layout>
@@ -64,24 +141,21 @@ export default function Activities() {
               {isAdmin ? "Activity Management" : "Browse Activities"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {isAdmin
-                ? "Manage all activities and registrations"
-                : "Find and register for activities"}
+              {isAdmin ? "Manage all activities and registrations" : "Find and join exciting activities"}
             </p>
           </div>
           {isAdmin && (
             <Button onClick={() => navigate("/activities/new")} className="gap-2">
               <Plus className="w-4 h-4" />
-              New Activity
+              Create Activity
             </Button>
           )}
         </div>
 
-        {/* Search and Filter */}
-        <div className="space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search activities..."
@@ -90,43 +164,80 @@ export default function Activities() {
               className="pl-10 h-10"
             />
           </div>
-
+          
           {/* Category Filter */}
-          <div className="flex gap-2 flex-wrap">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  selectedCategory === cat
-                    ? "bg-blue-500 text-white"
-                    : "bg-muted text-foreground hover:bg-muted/80"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+          <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as ActivityCategory | "All")}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {uniqueCategories.map((cat) => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {/* Date Filter */}
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-full md:w-[150px]">
+              <SelectValue placeholder="Date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Dates</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="past">Past</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Venue Filter */}
+          <Select value={venueFilter} onValueChange={setVenueFilter}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Venue" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Venues</SelectItem>
+              {uniqueVenues.map((venue) => (
+                <SelectItem key={venue} value={venue}>{venue}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {/* Export Button */}
+          <Button variant="outline" onClick={exportToCSV} className="gap-2">
+            <Download className="w-4 h-4" />
+            Export
+          </Button>
         </div>
+
+        {/* Results count */}
+        <p className="text-sm text-muted-foreground">
+          Showing {filtered.length} of {activities.length} activities
+        </p>
 
         {/* Activities Grid */}
         {filtered.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((activity) => {
-              const isRegistered = user
-                ? activity.currentParticipants.includes(user.id)
-                : false;
+              const isRegistered = user ? activity.currentParticipants.includes(user.id) : false;
+              const isOnWaitlist = user ? activity.waitlist.includes(user.id) : false;
 
               return (
                 <ActivityCard
                   key={activity.id}
                   activity={activity}
                   isRegistered={isRegistered}
+                  isOnWaitlist={isOnWaitlist}
                   onRegister={() => handleRegister(activity.id)}
                   onUnregister={() => handleUnregister(activity.id)}
+                  onJoinWaitlist={() => handleJoinWaitlist(activity.id)}
+                  onLeaveWaitlist={() => handleLeaveWaitlist(activity.id)}
                   onEdit={() => handleEdit(activity.id)}
                   onDelete={() => handleDelete(activity.id)}
+                  onToggleFavorite={() => handleToggleFavorite(activity.id)}
                   isAdmin={isAdmin}
+                  isFavorite={user ? isFavorite(user.id, activity.id) : false}
+                  showFavoriteButton={!isAdmin}
                 />
               );
             })}
@@ -138,7 +249,7 @@ export default function Activities() {
                 No activities found
               </p>
               <p className="text-muted-foreground mb-4">
-                {searchQuery || selectedCategory !== "All"
+                {searchQuery || selectedCategory !== "All" || dateFilter !== "all" || venueFilter !== "all"
                   ? "Try adjusting your search or filter criteria"
                   : "No activities available yet"}
               </p>

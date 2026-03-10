@@ -1,0 +1,53 @@
+[
+  {
+    "id": "activity_1",
+    "title": "Basketball Tournament",
+    "description": "Inter-college basketball tournament with exciting matches",
+    "category": "Sports",
+    "date": "2026-03-15",
+    "venue": "Sports Complex",
+    "maxParticipants": 30,
+    "currentParticipants": [],
+    "waitlist": [],
+    "comments": [],
+    "ratings": [],
+    "tags": [
+      "Outdoor"
+    ],
+    "createdBy": "admin_1",
+    "createdAt": "2026-03-08T02:09:45.659Z",
+    "requiresApproval": false,
+    "approvedParticipants": [],
+    "pendingParticipants": [],
+    "rejectedParticipants": [],
+    "checkIns": [],
+    "feedbacks": [],
+    "photos": []
+  },
+  {
+    "id": "activity_2",
+    "title": "Coding Club Meetup",
+    "description": "Weekly meetup for coding enthusiasts to discuss new technologies",
+    "category": "Clubs",
+    "date": "2026-03-11",
+    "venue": "Tech Lab",
+    "maxParticipants": 50,
+    "currentParticipants": [],
+    "waitlist": [],
+    "comments": [],
+    "ratings": [],
+    "tags": [
+      "Indoor",
+      "Online"
+    ],
+    "createdBy": "admin_1",
+    "createdAt": "2026-03-08T02:09:45.659Z",
+    "requiresApproval": false,
+    "approvedParticipants": [],
+    "pendingParticipants": [],
+    "rejectedParticipants": [],
+    "checkIns": [],
+    "feedbacks": [],
+    "photos": []
+  }
+]

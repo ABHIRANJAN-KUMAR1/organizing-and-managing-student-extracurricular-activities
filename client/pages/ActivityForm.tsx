@@ -1,12 +1,13 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { useActivities } from "@/context/ActivityContext";
 import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Tag, X } from "lucide-react";
 import { toast } from "sonner";
 import { Activity, ActivityCategory } from "@/types";
 
@@ -15,6 +16,17 @@ export default function ActivityForm() {
   const navigate = useNavigate();
   const { getActivity, addActivity, updateActivity, categories } = useActivities();
   const { user } = useAuth();
+  const { addBroadcastNotification } = useNotifications();
+
+  // Get tags from localStorage
+  const [availableTags, setAvailableTags] = useState<{id: string; name: string; color: string}[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("activity_tags");
+    if (stored) {
+      setAvailableTags(JSON.parse(stored));
+    }
+  }, []);
 
   const isEditing = !!id;
   const activity = id ? getActivity(id) : null;
@@ -39,12 +51,18 @@ export default function ActivityForm() {
     date: activity?.date || "",
     venue: activity?.venue || "",
     maxParticipants: activity?.maxParticipants || 50,
+    tags: activity?.tags || [] as string[],
   });
 
   const [isLoading, setIsLoading] = useState(false);
 
   const categoryOptions = categories.length > 0 
     ? categories.map(c => c.name as ActivityCategory)
+    : ["Clubs", "Sports", "Events", "Workshops", "Seminar", "Cultural"] as ActivityCategory[];
+  
+  // Ensure we have at least some default options if categories is empty
+  const displayCategories = categoryOptions.length > 0 
+    ? categoryOptions 
     : ["Clubs", "Sports", "Events", "Workshops", "Seminar", "Cultural"] as ActivityCategory[];
 
   const handleChange = (
@@ -55,6 +73,17 @@ export default function ActivityForm() {
       ...prev,
       [name]: name === "maxParticipants" ? parseInt(value) || 0 : value,
     }));
+  };
+
+  const handleTagToggle = (tagId: string) => {
+    setFormData((prev) => {
+      const currentTags = prev.tags || [];
+      if (currentTags.includes(tagId)) {
+        return { ...prev, tags: currentTags.filter(t => t !== tagId) };
+      } else {
+        return { ...prev, tags: [...currentTags, tagId] };
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -74,7 +103,13 @@ export default function ActivityForm() {
       } else {
         const newActivity: Activity = {
           id: `activity_${Date.now()}`,
-          ...formData,
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          date: formData.date,
+          venue: formData.venue,
+          maxParticipants: formData.maxParticipants,
+          tags: formData.tags,
           currentParticipants: [],
           waitlist: [],
           comments: [],
@@ -83,6 +118,12 @@ export default function ActivityForm() {
           createdAt: new Date().toISOString(),
         };
         addActivity(newActivity);
+        // Send notification to all students
+        addBroadcastNotification(
+          "New Activity Available!",
+          `A new activity "${formData.title}" has been created. Check it out!`,
+          "info"
+        );
         toast.success("Activity created successfully!");
       }
 
@@ -134,10 +175,60 @@ export default function ActivityForm() {
                 onChange={handleChange}
                 className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 h-11"
               >
-                {categoryOptions.map((cat) => (
+                {displayCategories.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Tags Selection */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Tags <span className="text-muted-foreground">(Optional)</span>
+              </label>
+              {availableTags.length > 0 ? (
+                <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-muted/30">
+                  {availableTags.map((tag) => {
+                    const isSelected = formData.tags?.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => handleTagToggle(tag.id)}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          isSelected ? "ring-2 ring-offset-1" : "opacity-60 hover:opacity-100"
+                        }`}
+                        style={{ 
+                          backgroundColor: tag.color,
+                          color: "white",
+                        }}
+                      >
+                        {tag.name}
+                        {isSelected && <X className="w-3 h-3" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-4 border border-dashed border-border rounded-lg text-center">
+                  <Tag className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    No tags available.{" "}
+                    <Button 
+                      variant="link" 
+                      className="p-0 h-auto text-blue-500"
+                      onClick={() => navigate("/tags")}
+                    >
+                      Create tags here
+                    </Button>
+                  </p>
+                </div>
+              )}
+              {formData.tags && formData.tags.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {formData.tags.length} tag(s) selected
+                </p>
+              )}
             </div>
 
             <div>
@@ -205,3 +296,4 @@ export default function ActivityForm() {
     </Layout>
   );
 }
+

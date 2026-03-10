@@ -1,21 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserRole } from "@/types";
-import { Activity, RefreshCw, Shield } from "lucide-react";
+import { Activity } from "lucide-react";
 import { toast } from "sonner";
-
-// Generate random captcha string
-const generateCaptcha = () => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let result = "";
-  for (let i = 0; i < 5; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
 
 export default function Login() {
   const navigate = useNavigate();
@@ -25,23 +15,27 @@ export default function Login() {
   const [role, setRole] = useState<UserRole>("student");
   const [isLoading, setIsLoading] = useState(false);
   
-  // Captcha state
-  const [captcha, setCaptcha] = useState("");
+  // Captcha state - Random string captcha
+  const generateCaptcha = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let result = "";
+    for (let i = 0; i < 5; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+  
+  const [captchaCode, setCaptchaCode] = useState(generateCaptcha());
   const [captchaInput, setCaptchaInput] = useState("");
   const [captchaError, setCaptchaError] = useState(false);
-
-  // Generate initial captcha
-  useEffect(() => {
-    setCaptcha(generateCaptcha());
-  }, []);
-
+  
   const refreshCaptcha = () => {
-    setCaptcha(generateCaptcha());
+    setCaptchaCode(generateCaptcha());
     setCaptchaInput("");
     setCaptchaError(false);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -49,53 +43,45 @@ export default function Login() {
       return;
     }
 
-    // Validate captcha
-    if (captchaInput.toUpperCase() !== captcha) {
+    // Verify captcha first (case-insensitive)
+    if (captchaInput.toUpperCase() !== captchaCode) {
       setCaptchaError(true);
-      toast.error("Please enter the correct captcha code");
       refreshCaptcha();
+      toast.error("Incorrect captcha. Please try again.");
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Check if user exists in localStorage
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const existingUser = users.find(
-        (u: any) => u.email === email && u.role === role
-      );
-
-      if (existingUser) {
-        login(existingUser);
-        toast.success(`Welcome back, ${existingUser.name}!`);
-        navigate("/dashboard");
-      } else if (role === "admin" && email === "admin@example.com" && password === "admin123") {
-        // Default admin account
-        const adminUser = {
-          id: "admin1",
-          email: "admin@example.com",
-          name: "Admin User",
-          role: "admin" as const,
-          createdAt: new Date().toISOString(),
-        };
-        login(adminUser);
-        toast.success("Welcome back, Admin!");
-        navigate("/dashboard");
-      } else {
-        toast.error("Invalid credentials. Try admin@example.com / admin123 for admin, or register as student");
+    try {
+      // Use the auth context login function which handles validation properly
+      const user = await login(email, password);
+      
+      // Check if the selected role matches the user's actual role
+      if (user.role !== role) {
+        toast.error(`You are registered as ${user.role}, not ${role}. Please select correct role.`);
+        setIsLoading(false);
+        return;
       }
-
+      
+      // Navigate based on user role
+      if (user.role === "admin") {
+        toast.success(`Welcome back, ${user.name}!`);
+        navigate("/admin");
+      } else {
+        toast.success(`Welcome back, ${user.name}!`);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error("Invalid email or password. Please try again.");
+    } finally {
       setIsLoading(false);
-      refreshCaptcha();
-    }, 600);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
@@ -117,7 +103,6 @@ export default function Login() {
           </p>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Role Selection */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Login As
@@ -140,94 +125,64 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Email Input */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Email Address
               </label>
               <Input
                 type="email"
-                placeholder={
-                  role === "admin" ? "admin@example.com" : "your@email.com"
-                }
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-10"
               />
             </div>
 
-            {/* Password Input */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Password
               </label>
               <Input
                 type="password"
-                placeholder={role === "admin" ? "admin123" : "••••••••"}
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-10"
               />
             </div>
 
-            {/* Captcha */}
+            {/* Captcha - Random String */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Security Check
               </label>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  {/* Captcha Display */}
-                  <div className="flex items-center justify-center bg-slate-100 dark:bg-slate-800 border border-border rounded-lg px-4 py-2 min-w-[140px]">
-                    <span 
-                      className="font-mono text-2xl font-bold tracking-widest select-none"
-                      style={{ 
-                        color: '#1e40af',
-                        textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
-                        fontFamily: 'Courier New, monospace'
-                      }}
-                    >
-                      {captcha}
-                    </span>
-                  </div>
-                  
-                  {/* Refresh Button */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={refreshCaptcha}
-                    className="h-10 w-10 p-0"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </Button>
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 rounded-lg font-mono text-xl font-bold flex-1 text-center text-white tracking-wider">
+                  {captchaCode}
                 </div>
-                
-                {/* Captcha Input */}
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Enter captcha code"
-                    value={captchaInput}
-                    onChange={(e) => {
-                      setCaptchaInput(e.target.value);
-                      setCaptchaError(false);
-                    }}
-                    className={`h-10 ${captchaError ? 'border-red-500 focus:ring-red-500' : ''}`}
-                    maxLength={5}
-                    autoComplete="off"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Shield className={`w-4 h-4 ${captchaError ? 'text-red-500' : 'text-green-500'}`} />
-                  </div>
-                </div>
-                {captchaError && (
-                  <p className="text-xs text-red-500">Incorrect captcha. Please try again.</p>
-                )}
+                <button
+                  type="button"
+                  onClick={refreshCaptcha}
+                  className="text-xs text-blue-600 hover:text-blue-700 underline"
+                >
+                  Refresh
+                </button>
               </div>
+              <Input
+                type="text"
+                placeholder="Enter the code above"
+                value={captchaInput}
+                onChange={(e) => {
+                  setCaptchaInput(e.target.value);
+                  setCaptchaError(false);
+                }}
+                className={`h-10 mt-2 ${captchaError ? "border-red-500" : ""}`}
+              />
+              {captchaError && (
+                <p className="text-xs text-red-500 mt-1">Incorrect captcha code. Try again.</p>
+              )}
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               disabled={isLoading}
@@ -236,7 +191,6 @@ export default function Login() {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
 
-            {/* Forgot Password Link */}
             <div className="text-center mt-4">
               <Link
                 to="/password-reset"
@@ -247,7 +201,6 @@ export default function Login() {
             </div>
           </form>
 
-          {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
@@ -260,7 +213,6 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Demo Credentials */}
           <div className="mt-6 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground mb-2">
               Demo Credentials:
@@ -279,3 +231,4 @@ export default function Login() {
     </div>
   );
 }
+

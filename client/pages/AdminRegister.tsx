@@ -1,28 +1,29 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { useNotifications } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserRole } from "@/types";
-import { Activity } from "lucide-react";
+import { Activity, Shield } from "lucide-react";
 import { toast } from "sonner";
 
-export default function Register() {
+// Secret code for admin registration (in production, use environment variable)
+const ADMIN_SECRET_CODE = "ADMIN2024";
+
+export default function AdminRegister() {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const { notifyAdminOfRegistration } = useNotifications();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("student");
+  const [secretCode, setSecretCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || !secretCode) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -37,19 +38,22 @@ export default function Register() {
       return;
     }
 
+    // Verify secret code
+    if (secretCode !== ADMIN_SECRET_CODE) {
+      toast.error("Invalid admin secret code");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Call backend API for registration
-      const newUser = await register(email, name, password, role);
+      // Register as admin
+      const newUser = await register(email, name, password, "admin");
       
-      // Notify admin about new registration
-      notifyAdminOfRegistration(name, "");
+      toast.success(`Welcome Admin, ${newUser.name}! You are now logged in.`);
       
-      toast.success(`Welcome, ${newUser.name}! You are now logged in.`);
-      
-      // Redirect to dashboard
-      navigate("/dashboard");
+      // Redirect to admin dashboard
+      navigate("/admin");
     } catch (error: any) {
       toast.error(error.message || "Registration failed. Please try again.");
     } finally {
@@ -74,41 +78,36 @@ export default function Register() {
         </div>
 
         <div className="bg-card border border-border rounded-xl shadow-sm p-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2 text-center">
-            Create Account
-          </h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Shield className="w-6 h-6 text-purple-600" />
+            <h1 className="text-2xl font-bold text-foreground text-center">
+              Admin Registration
+            </h1>
+          </div>
           <p className="text-center text-muted-foreground mb-6">
-            Register to join Activity Hub Manager
+            Create an admin account
           </p>
 
           <form onSubmit={handleRegister} className="space-y-4">
-            {/* Role Selection - redirect to AdminRegister for admin */}
+            {/* Warning Box */}
+            <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-3 mb-4">
+              <p className="text-sm text-purple-800 dark:text-purple-200">
+                <strong>Admin Access</strong> - You need a secret code to register as admin.
+              </p>
+            </div>
+
+            {/* Secret Code Input */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Register As
+                Admin Secret Code
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                {(["student", "admin"] as const).map((userRole) => (
-                  <button
-                    key={userRole}
-                    type="button"
-                    onClick={() => {
-                      if (userRole === "admin") {
-                        navigate("/admin-register");
-                      } else {
-                        setRole(userRole);
-                      }
-                    }}
-                    className={`px-4 py-2 rounded-lg border-2 font-medium capitalize transition-all ${
-                      role === userRole
-                        ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
-                        : "border-border bg-background text-foreground hover:border-border/80"
-                    }`}
-                  >
-                    {userRole === "admin" ? "Admin (with code)" : "Student"}
-                  </button>
-                ))}
-              </div>
+              <Input
+                type="password"
+                placeholder="Enter secret code"
+                value={secretCode}
+                onChange={(e) => setSecretCode(e.target.value)}
+                className="h-10"
+              />
             </div>
 
             {/* Full Name Input */}
@@ -132,7 +131,7 @@ export default function Register() {
               </label>
               <Input
                 type="email"
-                placeholder="your@email.com"
+                placeholder="admin@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-10"
@@ -173,34 +172,25 @@ export default function Register() {
               disabled={isLoading}
               className="w-full h-10 mt-6"
             >
-              {isLoading ? "Creating Account..." : "Create Account"}
+              {isLoading ? "Creating Admin Account..." : "Register as Admin"}
             </Button>
           </form>
 
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
+              Are you a student?{" "}
               <Link
-                to="/login"
+                to="/register"
                 className="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
               >
-                Sign in here
+                Register here
               </Link>
             </p>
-          </div>
-
-          {/* Info Box */}
-          <div className="mt-6 pt-6 border-t border-border">
-            <div className="bg-muted/50 rounded-lg p-3 text-xs">
-              <p className="text-foreground font-medium">Student Account</p>
-              <p className="text-muted-foreground">
-                You'll be able to browse and register for activities
-              </p>
-            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
