@@ -217,6 +217,18 @@ export const activityHistoryApi = {
   delete: (id: string) => apiCall(`/activity-history/${id}`, { method: "DELETE" }),
 };
 
+// Analytics API
+export const analyticsApi = {
+  getOverview: () => apiCall("/analytics/overview"),
+  getCategories: () => apiCall("/analytics/categories"),
+  getWeekly: () => apiCall("/analytics/weekly"),
+  getMonthly: () => apiCall("/analytics/monthly"),
+  getTopActivities: () => apiCall("/analytics/top-activities"),
+  getTopStudents: () => apiCall("/analytics/top-students"),
+  getRatings: () => apiCall("/analytics/ratings"),
+  getHeatmap: () => apiCall("/analytics/heatmap"),
+};
+
 export default {
   activitiesApi,
   usersApi,
@@ -230,4 +242,5 @@ export default {
   broadcastApi,
   remindersApi,
   activityHistoryApi,
+  analyticsApi,
 };

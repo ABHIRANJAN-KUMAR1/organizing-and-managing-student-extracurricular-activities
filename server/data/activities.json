@@ -4,10 +4,13 @@
     "title": "Basketball Tournament",
     "description": "Inter-college basketball tournament with exciting matches",
     "category": "Sports",
-    "date": "2026-03-15",
+    "date": "2025-03-20",
     "venue": "Sports Complex",
     "maxParticipants": 30,
-    "currentParticipants": [],
+    "currentParticipants": [
+      "user_1773122259066",
+      "user_1773122299571"
+    ],
     "waitlist": [],
     "comments": [],
     "ratings": [],
@@ -15,12 +18,29 @@
       "Outdoor"
     ],
     "createdBy": "admin_1",
-    "createdAt": "2026-03-08T02:09:45.659Z",
+    "createdAt": "2025-03-01T10:00:00.000Z",
     "requiresApproval": false,
     "approvedParticipants": [],
     "pendingParticipants": [],
     "rejectedParticipants": [],
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "checkin_1773221494158",
+        "userId": "user_1773122259066",
+        "userName": "rohan",
+        "activityId": "activity_1",
+        "checkedInAt": "2026-03-11T09:31:34.158Z",
+        "checkedInBy": "sohan"
+      },
+      {
+        "id": "checkin_1773221495312",
+        "userId": "user_1773122299571",
+        "userName": "himanshu",
+        "activityId": "activity_1",
+        "checkedInAt": "2026-03-11T09:31:35.312Z",
+        "checkedInBy": "sohan"
+      }
+    ],
     "feedbacks": [],
     "photos": []
   },
@@ -29,10 +49,12 @@
     "title": "Coding Club Meetup",
     "description": "Weekly meetup for coding enthusiasts to discuss new technologies",
     "category": "Clubs",
-    "date": "2026-03-11",
+    "date": "2025-03-15",
     "venue": "Tech Lab",
     "maxParticipants": 50,
-    "currentParticipants": [],
+    "currentParticipants": [
+      "user_1773122299571"
+    ],
     "waitlist": [],
     "comments": [],
     "ratings": [],
@@ -41,13 +63,78 @@
       "Online"
     ],
     "createdBy": "admin_1",
-    "createdAt": "2026-03-08T02:09:45.659Z",
+    "createdAt": "2025-03-01T10:00:00.000Z",
     "requiresApproval": false,
     "approvedParticipants": [],
     "pendingParticipants": [],
     "rejectedParticipants": [],
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "checkin_1773221501329",
+        "userId": "user_1773122299571",
+        "userName": "himanshu",
+        "activityId": "activity_2",
+        "checkedInAt": "2026-03-11T09:31:41.329Z",
+        "checkedInBy": "sohan"
+      }
+    ],
     "feedbacks": [],
     "photos": []
+  },
+  {
+    "id": "activity_3",
+    "title": "Annual Fest 2025",
+    "description": "Grand annual fest with music, food, and various competitions",
+    "category": "Events",
+    "date": "2025-04-01",
+    "venue": "Main Auditorium",
+    "maxParticipants": 500,
+    "currentParticipants": [
+      "user_1773122259066"
+    ],
+    "waitlist": [],
+    "comments": [],
+    "ratings": [],
+    "tags": [],
+    "createdBy": "admin_1",
+    "createdAt": "2025-03-01T10:00:00.000Z",
+    "requiresApproval": false,
+    "approvedParticipants": [],
+    "pendingParticipants": [],
+    "rejectedParticipants": [],
+    "checkIns": [
+      {
+        "id": "checkin_1773221504185",
+        "userId": "user_1773122259066",
+        "userName": "rohan",
+        "activityId": "activity_3",
+        "checkedInAt": "2026-03-11T09:31:44.185Z",
+        "checkedInBy": "sohan"
+      }
+    ],
+    "feedbacks": [],
+    "photos": []
+  },
+  {
+    "id": "activity_1773221343652",
+    "title": "cricket",
+    "description": "play",
+    "category": "Sports",
+    "date": "2026-03-11",
+    "venue": "Hall c",
+    "maxParticipants": 50,
+    "tags": [],
+    "currentParticipants": [],
+    "waitlist": [],
+    "comments": [],
+    "ratings": [],
+    "createdBy": "admin",
+    "createdAt": "2026-03-11T09:29:03.652Z",
+    "photos": [],
+    "approvedParticipants": [],
+    "pendingParticipants": [],
+    "rejectedParticipants": [],
+    "checkIns": [],
+    "feedbacks": []
   }
 ]

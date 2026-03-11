@@ -14,6 +14,8 @@ import certificatesRouter from "./routes/certificates";
 import broadcastRouter from "./routes/broadcast";
 import remindersRouter from "./routes/reminders";
 import activityHistoryRouter from "./routes/activityHistory";
+import analyticsRouter from "./routes/analytics";
+import calendarRouter from "./routes/calendar";
 
 export function createServer() {
   const app = express();
@@ -44,6 +46,8 @@ export function createServer() {
   app.use("/api/broadcast", broadcastRouter);
   app.use("/api/reminders", remindersRouter);
   app.use("/api/activity-history", activityHistoryRouter);
+  app.use("/api/analytics", analyticsRouter);
+  app.use("/api/calendar", calendarRouter);
 
   return app;
 }
