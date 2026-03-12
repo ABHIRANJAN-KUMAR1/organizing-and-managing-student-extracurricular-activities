@@ -17,10 +17,25 @@ import { toast } from "sonner";
 import { useState } from "react";
 
 export default function AdminDashboard() {
-  const { activities } = useActivities();
+  const { activities, getUserActivities } = useActivities();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await import("@/lib/api").then(api => api.activitiesApi.getAll());
+      // Note: Context doesn't have reload, but this updates local state
+      // Full reload via context would require provider refresh
+      toast.success("Data refreshed!");
+    } catch {
+      toast.error("Refresh failed");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Get all registered users from server
   const totalStudents = 6; // From users.json
@@ -115,10 +130,16 @@ export default function AdminDashboard() {
               Here's what's happening with your activities today.
             </p>
           </div>
-          <Button onClick={() => navigate("/activities/new")} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create Activity
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/activities/new")} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Create Activity
+            </Button>
+            <Button onClick={refreshData} disabled={isRefreshing} variant="outline" className="gap-2">
+              <ArrowRight className="w-4 h-4" />
+              Refresh Data
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}

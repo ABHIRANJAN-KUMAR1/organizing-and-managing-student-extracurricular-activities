@@ -61,12 +61,19 @@ export const ActivityProvider = ({ children }: { children: ReactNode }) => {
 
   const addActivity = async (activity: Activity) => {
     const newActivity = { ...activity, createdAt: new Date().toISOString() };
+    
+    // Optimistic update
+    setActivities(prev => [newActivity, ...prev]);
+    
     try {
       await activitiesApi.create(newActivity);
       // Reload to sync
       const data = await activitiesApi.getAll();
       setActivities(data);
-    } catch {}
+    } catch {
+      // Revert on error
+      setActivities(prev => prev.filter(a => a.id !== newActivity.id));
+    }
   };
 
   const updateActivity = async (id: string, updates: Partial<Activity>) => {
@@ -153,12 +160,28 @@ export const ActivityProvider = ({ children }: { children: ReactNode }) => {
 
   const addRating = async (activityId: string, rating: Rating) => {
     const newRating = { ...rating, createdAt: new Date().toISOString() };
+    
+    // Optimistic update
+    setActivities(prev => prev.map(activity => 
+      activity.id === activityId 
+        ? { ...activity, ratings: [...(activity.ratings || []), newRating] }
+        : activity
+    ));
+    
     try {
       await activitiesApi.addRating(activityId, { userId: rating.userId, userName: rating.userName, score: rating.score, review: rating.review });
-    } catch {}
-    // Reload
-    const data = await activitiesApi.getAll();
-    setActivities(data);
+      // Reload to sync
+      const data = await activitiesApi.getAll();
+      setActivities(data);
+    } catch (error) {
+      console.error('Rating save failed:', error);
+      // Revert optimistic update
+      setActivities(prev => prev.map(activity =>
+        activity.id === activityId
+          ? { ...activity, ratings: (activity.ratings || []).filter(r => r.id !== newRating.id) }
+          : activity
+      ));
+    }
   };
 
   const getUserActivityHistory = (userId: string): ActivityHistoryEntry[] => [];

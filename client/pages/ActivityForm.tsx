@@ -202,7 +202,10 @@ const handleSubmit = async (e: React.FormEvent) => {
         );
         toast.success("Activity created successfully!");
       }
-      navigate("/activities");
+      // Navigate to calendar with date param for auto-highlight
+      setTimeout(() => {
+        navigate(`/activities/calendar?date=${formData.date}`);
+      }, 200);
     } catch (error) {
       toast.error("Failed to save activity");
     } finally {

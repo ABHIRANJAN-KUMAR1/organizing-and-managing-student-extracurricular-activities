@@ -126,10 +126,29 @@
     "venue": "Hall c",
     "maxParticipants": 50,
     "tags": [],
-    "currentParticipants": [],
+    "currentParticipants": [
+      "user_1773122259066"
+    ],
     "waitlist": [],
-    "comments": [],
-    "ratings": [],
+    "comments": [
+      {
+        "id": "comment_1773336278007",
+        "userId": "user_1773122259066",
+        "userName": "rohan",
+        "content": "good for student",
+        "createdAt": "2026-03-12T17:24:38.007Z"
+      }
+    ],
+    "ratings": [
+      {
+        "id": "rating_1773336274742",
+        "userId": "user_1773122259066",
+        "userName": "rohan",
+        "score": 5,
+        "review": "",
+        "createdAt": "2026-03-12T17:24:34.742Z"
+      }
+    ],
     "createdBy": "admin",
     "createdAt": "2026-03-11T09:29:03.652Z",
     "photos": [],

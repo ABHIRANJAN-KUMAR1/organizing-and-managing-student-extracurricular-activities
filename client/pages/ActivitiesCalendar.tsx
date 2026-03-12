@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { CalendarView } from "@/components/Calendar";
 import { useActivities } from "@/context/ActivityContext";
@@ -10,6 +10,8 @@ import { Calendar, List } from "lucide-react";
 
 export default function ActivitiesCalendar() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const highlightDate = searchParams.get("date") || undefined;
   const { activities } = useActivities();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -44,7 +46,9 @@ export default function ActivitiesCalendar() {
             <CalendarView 
               activities={activities} 
               onActivityClick={handleActivityClick}
+              highlightDate={highlightDate}
             />
+
           </TabsContent>
         </Tabs>
       </div>

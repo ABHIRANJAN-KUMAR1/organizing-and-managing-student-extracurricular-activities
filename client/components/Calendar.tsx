@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Activity } from "@/types";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -7,10 +7,31 @@ import { Button } from "@/components/ui/button";
 interface CalendarViewProps {
   activities: Activity[];
   onActivityClick?: (activityId: string) => void;
+  highlightDate?: string;
 }
 
-export function CalendarView({ activities, onActivityClick }: CalendarViewProps) {
+export function CalendarView({ activities, onActivityClick, highlightDate }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Auto-jump to highlightDate if provided
+  useEffect(() => {
+    if (highlightDate) {
+      try {
+        const date = parseISO(highlightDate);
+        setCurrentDate(date);
+      } catch (e) {
+        console.error('Invalid highlightDate:', highlightDate, e);
+      }
+    }
+  }, [highlightDate]);
+
+  // Debug log for activities
+  useEffect(() => {
+    console.log('CalendarView loaded with', activities.length, 'activities');
+    if (activities.length > 0) {
+      console.log('Recent activities:', activities.slice(0,3).map(a => ({id: a.id, title: a.title, date: a.date})));
+    }
+  }, [activities]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -79,7 +100,7 @@ export function CalendarView({ activities, onActivityClick }: CalendarViewProps)
             <div key={index} className={getDayClassName(day, isCurrentMonth)}>
               {day && (
                 <div>
-                  <div className={`text-xs font-medium mb-1 ${isToday(day) ? "text-blue-500" : "text-muted-foreground"}`}>
+                  <div className={`text-xs font-medium mb-1 ${isToday(day) ? "text-blue-500 font-bold" : "text-muted-foreground"}`}>
                     {format(day, "d")}
                   </div>
                   <div className="space-y-1">
@@ -87,7 +108,7 @@ export function CalendarView({ activities, onActivityClick }: CalendarViewProps)
                       <button
                         key={activity.id}
                         onClick={() => onActivityClick?.(activity.id)}
-                        className="w-full text-xs p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded truncate text-left hover:bg-blue-200 dark:hover:bg-blue-900/50"
+                        className="w-full text-xs p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded truncate text-left hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                       >
                         {activity.title}
                       </button>
