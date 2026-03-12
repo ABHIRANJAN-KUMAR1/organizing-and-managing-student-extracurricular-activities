@@ -65,6 +65,8 @@ export interface Activity {
   description: string;
   category: ActivityCategory;
   date: string;
+  startTime?: string; // e.g., "10:00"
+  endTime?: string;   // e.g., "12:00"
   venue: string;
   maxParticipants: number;
   currentParticipants: string[]; // Array of user IDs
@@ -251,4 +253,33 @@ export interface NotificationContextType {
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
   unreadCount: number;
+}
+
+// ==================== RECOMMENDATION SYSTEM TYPES ====================
+
+// User preference profile for recommendations
+export interface UserPreferenceProfile {
+  userId: string;
+  categoryPreferences: Record<string, number>;
+  timePreference: "morning" | "afternoon" | "evening" | "night";
+  venuePreferences: string[];
+  activityCountByCategory: Record<string, number>;
+  totalActivities: number;
+  averageRatingGiven: number;
+  dayPreference: "weekday" | "weekend" | "any";
+  updatedAt: string;
+}
+
+// Recommendation reason
+export interface RecommendationReason {
+  type: "category_match" | "popular" | "similar_joined" | "new_activity" | "high_rated" | "time_match";
+  message: string;
+  score: number;
+}
+
+// Recommended activity with reason
+export interface RecommendedActivity {
+  activity: Activity;
+  score: number;
+  reasons: RecommendationReason[];
 }

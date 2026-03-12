@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useActivities } from "@/context/ActivityContext";
 import { Button } from "@/components/ui/button";
@@ -24,17 +24,76 @@ import { toast } from "sonner";
 import { Activity } from "@/types";
 
 export default function AdminRedirect() {
-  const { activities, updateActivity } = useActivities();
+  const { activities, updateActivity, addActivity } = useActivities();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [isRedirectDialogOpen, setIsRedirectDialogOpen] = useState(false);
   const [targetActivityId, setTargetActivityId] = useState<string>("");
   const [sourceActivityId, setSourceActivityId] = useState<string>("");
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Get all students with their registrations
-  const allStudents: { id: string; name: string; email: string }[] = JSON.parse(
-    localStorage.getItem("users") || "[]"
-  ).filter((user: { role: string }) => user.role === "student");
+  useEffect(() => {
+    if (isInitialized) return;
+
+    // Always add demo data first time
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    if (!users.some((u: any) => u.role === "student")) {
+  const demoStudents = [
+        { id: "user_1773122259066", name: "rohan", email: "2400030581@kluniversity.in", role: "student" },
+        { id: "user_1773122299571", name: "himanshu", email: "2400030582@kluniversity.in", role: "student" },
+        { id: "user_1773122343630", name: "john", email: "2400030583@kluniversity.in", role: "student" }
+      ];
+      localStorage.setItem("users", JSON.stringify([...demoStudents, ...users]));
+      toast("Demo students created with real IDs");
+    }
+
+    if (activities.length === 0) {
+      toast("Loading demo activities...");
+      const demoActivities = [
+        {
+          id: "act1",
+          title: "Basketball Tournament",
+          date: "2024-10-15",
+          venue: "Sports Complex",
+          maxParticipants: 20,
+          currentParticipants: ["user_1773122259066", "user_1773122299571"],
+          checkIns: []
+        },
+        {
+          id: "act2",
+          title: "Coding Workshop", 
+          date: "2024-10-16",
+          venue: "Lab 101",
+          maxParticipants: 15,
+          currentParticipants: ["user_1773122343630"],
+          checkIns: []
+        }
+      ];
+      demoActivities.forEach(addActivity);
+      toast("Demo data ready - table updates in 1s!");
+      setTimeout(() => window.location.reload(), 1000); // Force reload to sync Context
+    }
+
+    setIsInitialized(true);
+  }, []); // Run once
+
+  // Get all students with their registrations - sync from server data
+  const allStudentsRaw = JSON.parse(localStorage.getItem("users") || "[]");
+  const allStudents: { id: string; name: string; email: string }[] = allStudentsRaw.filter((user: { role: string }) => user.role === "student");
+
+  // Auto-sync if no students
+  useEffect(() => {
+    if (allStudents.length === 0 && !isInitialized) {
+      toast("Syncing demo students from server data...");
+      const demoUsers = [
+        { id: "user_1773122259066", name: "rohan", email: "2400030581@kluniversity.in", role: "student" },
+        { id: "user_1773122299571", name: "himanshu", email: "2400030582@kluniversity.in", role: "student" },
+        { id: "user_1773122343630", name: "john", email: "2400030583@kluniversity.in", role: "student" }
+      ];
+      localStorage.setItem("users", JSON.stringify(demoUsers));
+      window.location.reload();
+    }
+  }, []);
 
   // Get all activities with registered students
   const activitiesWithRegistrations = activities.filter(
@@ -230,7 +289,7 @@ export default function AdminRedirect() {
                             variant="outline"
                             size="sm"
                             onClick={() => openRedirectDialog(student.id, activity.id)}
-                            disabled={getAvailableActivities(activity.id).length === 0}
+                            disabled={getAvailableActivities(activity.id).length === 0 || new Date(activity.date) <= new Date()}
                           >
                             <ArrowRightLeft className="w-4 h-4 mr-2" />
                             Redirect

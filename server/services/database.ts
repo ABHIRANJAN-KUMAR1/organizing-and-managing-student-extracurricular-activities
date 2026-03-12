@@ -99,6 +99,9 @@ export const remindersDb = new FileDB<any>("reminders.json");
 export const activityHistoryDb = new FileDB<any>("activityHistory.json");
 export const achievementsDb = new FileDB<any>("achievements.json");
 
+// User Preferences for Recommendations - NEW
+export const userPreferencesDb = new FileDB<any>("userPreferences.json");
+
 // Initialize with seed data
 export function seedDatabase() {
   // Seed categories if empty

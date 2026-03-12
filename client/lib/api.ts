@@ -229,6 +229,13 @@ export const analyticsApi = {
   getHeatmap: () => apiCall("/analytics/heatmap"),
 };
 
+// User Preferences API - for recommendations
+export const userPreferencesApi = {
+  get: (userId: string) => apiCall(`/user-preferences/${userId}`),
+  update: (userId: string, data: any) => apiCall(`/user-preferences/${userId}`, { method: "PUT", body: JSON.stringify(data) }),
+  updateFromActivity: (userId: string, data: any) => apiCall(`/user-preferences/${userId}/update-from-activity`, { method: "POST", body: JSON.stringify(data) }),
+};
+
 export default {
   activitiesApi,
   usersApi,
@@ -243,4 +250,5 @@ export default {
   remindersApi,
   activityHistoryApi,
   analyticsApi,
+  userPreferencesApi,
 };

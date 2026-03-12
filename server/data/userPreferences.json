@@ -1,0 +1,64 @@
+[
+  {
+    "id": "prefs_1773322939680",
+    "userId": "user_1773122259066",
+    "categoryPreferences": {
+      "Sports": 10,
+      "Events": 10
+    },
+    "timePreference": "afternoon",
+    "venuePreferences": [
+      "Tech Lab",
+      "Sports Complex"
+    ],
+    "activityCountByCategory": {
+      "Sports": 1,
+      "Events": 1
+    },
+    "totalActivities": 2,
+    "averageRatingGiven": 0,
+    "dayPreference": "weekday",
+    "updatedAt": "2026-03-12T13:42:21.899Z"
+  },
+  {
+    "id": "prefs_1773322988700",
+    "userId": "user_1773122299571",
+    "categoryPreferences": {
+      "Events": 10
+    },
+    "timePreference": "afternoon",
+    "venuePreferences": [
+      "Sports Complex"
+    ],
+    "activityCountByCategory": {
+      "Events": 1
+    },
+    "totalActivities": 1,
+    "averageRatingGiven": 0,
+    "dayPreference": "weekday",
+    "updatedAt": "2026-03-12T13:43:08.700Z"
+  },
+  {
+    "id": "prefs_1773323026624",
+    "userId": "user_1773122343630",
+    "categoryPreferences": {
+      "Sports": 20,
+      "Events": 10,
+      "Clubs": 10
+    },
+    "timePreference": "afternoon",
+    "venuePreferences": [
+      "Tech Lab",
+      "Sports Complex"
+    ],
+    "activityCountByCategory": {
+      "Sports": 2,
+      "Events": 1,
+      "Clubs": 1
+    },
+    "totalActivities": 4,
+    "averageRatingGiven": 0,
+    "dayPreference": "weekday",
+    "updatedAt": "2026-03-12T14:01:16.462Z"
+  }
+]

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -82,6 +82,7 @@ export default function NotificationSettings() {
         </div>
       </div>
       <button
+        aria-label={`${title} toggle`}
         onClick={onToggle}
         className={`relative w-12 h-6 rounded-full transition-colors ${enabled ? "bg-blue-500" : "bg-muted"}`}
       >

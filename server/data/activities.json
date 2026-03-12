@@ -9,7 +9,8 @@
     "maxParticipants": 30,
     "currentParticipants": [
       "user_1773122259066",
-      "user_1773122299571"
+      "user_1773122299571",
+      "user_1773122343630"
     ],
     "waitlist": [],
     "comments": [],
@@ -25,19 +26,19 @@
     "rejectedParticipants": [],
     "checkIns": [
       {
-        "id": "checkin_1773221494158",
-        "userId": "user_1773122259066",
-        "userName": "rohan",
-        "activityId": "activity_1",
-        "checkedInAt": "2026-03-11T09:31:34.158Z",
-        "checkedInBy": "sohan"
-      },
-      {
         "id": "checkin_1773221495312",
         "userId": "user_1773122299571",
         "userName": "himanshu",
         "activityId": "activity_1",
         "checkedInAt": "2026-03-11T09:31:35.312Z",
+        "checkedInBy": "sohan"
+      },
+      {
+        "id": "checkin_1773322076205",
+        "userId": "user_1773122259066",
+        "userName": "rohan",
+        "activityId": "activity_1",
+        "checkedInAt": "2026-03-12T13:27:56.205Z",
         "checkedInBy": "sohan"
       }
     ],
@@ -53,7 +54,8 @@
     "venue": "Tech Lab",
     "maxParticipants": 50,
     "currentParticipants": [
-      "user_1773122299571"
+      "user_1773122299571",
+      "user_1773122343630"
     ],
     "waitlist": [],
     "comments": [],
@@ -130,6 +132,61 @@
     "ratings": [],
     "createdBy": "admin",
     "createdAt": "2026-03-11T09:29:03.652Z",
+    "photos": [],
+    "approvedParticipants": [],
+    "pendingParticipants": [],
+    "rejectedParticipants": [],
+    "checkIns": [],
+    "feedbacks": []
+  },
+  {
+    "id": "activity_1773322783218",
+    "title": "dance",
+    "description": "dancing",
+    "category": "Events",
+    "date": "2026-04-02",
+    "venue": "Sports Complex",
+    "maxParticipants": 50,
+    "tags": [
+      "tag_1"
+    ],
+    "currentParticipants": [
+      "user_1773122259066",
+      "user_1773122299571",
+      "user_1773122343630"
+    ],
+    "waitlist": [],
+    "comments": [],
+    "ratings": [],
+    "createdBy": "admin",
+    "createdAt": "2026-03-12T13:39:43.218Z",
+    "photos": [],
+    "approvedParticipants": [],
+    "pendingParticipants": [],
+    "rejectedParticipants": [],
+    "checkIns": [],
+    "feedbacks": []
+  },
+  {
+    "id": "activity_1773322877406",
+    "title": "hockey",
+    "description": "play",
+    "category": "Sports",
+    "date": "2026-04-01",
+    "venue": "Tech Lab",
+    "maxParticipants": 50,
+    "tags": [
+      "tag_2"
+    ],
+    "currentParticipants": [
+      "user_1773122259066",
+      "user_1773122343630"
+    ],
+    "waitlist": [],
+    "comments": [],
+    "ratings": [],
+    "createdBy": "admin",
+    "createdAt": "2026-03-12T13:41:17.406Z",
     "photos": [],
     "approvedParticipants": [],
     "pendingParticipants": [],

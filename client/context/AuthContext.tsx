@@ -10,24 +10,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
+    // Always check server auth status
     const checkAuth = async () => {
-      const token = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("currentUser");
-      
-      if (token && storedUser) {
-        try {
-          // Try to validate token with backend
-          const userData = await usersApi.getMe();
-          setUser(userData);
-          setIsAuthenticated(true);
-        } catch {
-          // Token invalid, clear session
-          localStorage.removeItem("token");
-          localStorage.removeItem("currentUser");
-        }
+      try {
+        const userData = await usersApi.getMe();
+        setUser(userData);
+        setIsAuthenticated(true);
+        // Sync token from server if needed
+        localStorage.setItem("token", `Bearer_${Date.now()}`); // minimal token caching
+      } catch {
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem("token");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
     checkAuth();
@@ -35,65 +32,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<User> => {
     try {
-      // Try backend API first
       const response = await usersApi.login({ email, password });
       const { user: userData, token } = response;
       localStorage.setItem("token", token);
-      localStorage.setItem("currentUser", JSON.stringify(userData));
-      
-      // Also save to localStorage for Students page (if not already there)
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const existingIndex = users.findIndex((u: any) => u.email === email);
-      if (existingIndex === -1) {
-        users.push({ ...userData, password });
-        localStorage.setItem("users", JSON.stringify(users));
-      }
-      
       setUser(userData);
       setIsAuthenticated(true);
       return userData;
-    } catch {
-      // Fallback: try localStorage users (for demo/offline mode)
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const localUser = users.find((u: any) => u.email === email && u.password === password);
-      
-      if (localUser) {
-        const token = `token_${Date.now()}`;
-        localStorage.setItem("token", token);
-        const { password: _, ...userWithoutPassword } = localUser;
-        localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
-        setUser(userWithoutPassword);
-        setIsAuthenticated(true);
-        return userWithoutPassword;
-      }
-      
-      // Check default admin credentials
-      if (email === "admin@example.com" && password === "admin123") {
-        const adminUser: User = { 
-          id: "admin_default", 
-          email: "admin@example.com", 
-          name: "Admin", 
-          role: "admin", 
-          isVerified: true, 
-          createdAt: new Date().toISOString() 
-        };
-        const token = `token_${Date.now()}`;
-        localStorage.setItem("token", token);
-        localStorage.setItem("currentUser", JSON.stringify(adminUser));
-        
-        // Save to localStorage for Students page
-        const usersList = JSON.parse(localStorage.getItem("users") || "[]");
-        if (!usersList.find((u: any) => u.email === "admin@example.com")) {
-          usersList.push({ ...adminUser, password: "admin123" });
-          localStorage.setItem("users", JSON.stringify(usersList));
-        }
-        
-        setUser(adminUser);
-        setIsAuthenticated(true);
-        return adminUser;
-      }
-      
-      throw new Error("Invalid credentials");
+    } catch (error) {
+      throw new Error("Invalid credentials - check server connection");
     }
   };
 

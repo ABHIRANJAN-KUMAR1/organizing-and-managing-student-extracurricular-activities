@@ -1,4 +1,5 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "@/lib/api";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,14 +15,18 @@ const TAG_COLORS = [
 ];
 
 export default function TagsManagement() {
-  const [tags, setTags] = useState<{id: string; name: string; color: string}[]>(() => {
-    const stored = localStorage.getItem("activity_tags");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [tags, setTags] = useState<{id: string; name: string; color: string}[]>([]);
   const [newTagName, setNewTagName] = useState("");
   const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]);
 
-  const handleAddTag = () => {
+  // Load tags from server
+  useEffect(() => {
+    api.tagsApi.getAll()
+      .then(setTags)
+      .catch(e => console.error("Tags load failed:", e));
+  }, []);
+
+  const handleAddTag = async () => {
     if (!newTagName.trim()) {
       toast.error("Please enter a tag name");
       return;
@@ -31,24 +36,26 @@ export default function TagsManagement() {
       return;
     }
 
-    const newTag = {
-      id: `tag_${Date.now()}`,
-      name: newTagName.trim(),
-      color: selectedColor
-    };
-
-    const updatedTags = [...tags, newTag];
-    setTags(updatedTags);
-    localStorage.setItem("activity_tags", JSON.stringify(updatedTags));
-    setNewTagName("");
-    toast.success("Tag added successfully");
+    try {
+      await api.tagsApi.create({ name: newTagName.trim(), color: selectedColor });
+      toast.success("Tag added!");
+      setNewTagName("");
+      const data = await api.tagsApi.getAll();
+      setTags(data);
+    } catch (e) {
+      toast.error("Failed to add tag");
+    }
   };
 
-  const handleDeleteTag = (id: string) => {
-    const updatedTags = tags.filter(t => t.id !== id);
-    setTags(updatedTags);
-    localStorage.setItem("activity_tags", JSON.stringify(updatedTags));
-    toast.success("Tag deleted");
+  const handleDeleteTag = async (id: string) => {
+    try {
+      await api.tagsApi.delete(id);
+      toast.success("Tag deleted");
+      const data = await api.tagsApi.getAll();
+      setTags(data);
+    } catch (e) {
+      toast.error("Failed to delete tag");
+    }
   };
 
   return (
@@ -80,9 +87,11 @@ export default function TagsManagement() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {TAG_COLORS.map(color => (
+{TAG_COLORS.map(color => (
                 <button
                   key={color}
+                  aria-label={`Select ${color} color`}
+                  title={`#${color.slice(1)}`}
                   onClick={() => setSelectedColor(color)}
                   className={`w-8 h-8 rounded-full transition-transform ${selectedColor === color ? "scale-110 ring-2 ring-offset-2 ring-gray-400" : ""}`}
                   style={{ backgroundColor: color }}

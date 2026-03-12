@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { useActivities } from "@/context/ActivityContext";
@@ -18,14 +18,20 @@ export default function ActivityForm() {
   const { user } = useAuth();
   const { addBroadcastNotification } = useNotifications();
 
-  // Get tags from localStorage
+  // Get tags from server API
   const [availableTags, setAvailableTags] = useState<{id: string; name: string; color: string}[]>([]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("activity_tags");
-    if (stored) {
-      setAvailableTags(JSON.parse(stored));
-    }
+useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const { tagsApi } = await import("@/lib/api");
+        const data = await tagsApi.getAll();
+        setAvailableTags(data);
+      } catch (e) {
+        console.error("Tags load failed:", e);
+        setAvailableTags([]); 
+      }
+    };
+    loadTags();
   }, []);
 
   const isEditing = !!id;
@@ -49,10 +55,14 @@ export default function ActivityForm() {
     description: activity?.description || "",
     category: (activity?.category || "Clubs") as ActivityCategory,
     date: activity?.date || "",
+    startTime: activity?.startTime || "",
+    endTime: activity?.endTime || "",
     venue: activity?.venue || "",
     maxParticipants: activity?.maxParticipants || 50,
     tags: activity?.tags || [] as string[],
   });
+
+  const [venueConflict, setVenueConflict] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -73,6 +83,66 @@ export default function ActivityForm() {
       ...prev,
       [name]: name === "maxParticipants" ? parseInt(value) || 0 : value,
     }));
+    
+    // Check for venue conflict when date, venue, startTime, or endTime changes
+    if (name === "date" || name === "venue" || name === "startTime" || name === "endTime") {
+      checkVenueConflict(
+        name === "date" ? value : formData.date,
+        name === "venue" ? value : formData.venue,
+        name === "startTime" ? value : formData.startTime,
+        name === "endTime" ? value : formData.endTime
+      );
+    }
+  };
+
+  // Check for venue conflicts with existing activities
+  const checkVenueConflict = (date: string, venue: string, startTime: string, endTime: string) => {
+    if (!date || !venue) {
+      setVenueConflict(null);
+      return;
+    }
+
+    const allActivities = JSON.parse(localStorage.getItem("activities") || "[]");
+    const existingOnDate = allActivities.filter((a: Activity) => 
+      a.date === date && a.venue.toLowerCase() === venue.toLowerCase()
+    );
+
+    if (existingOnDate.length === 0) {
+      setVenueConflict(null);
+      return;
+    }
+
+    // If times are specified, check for overlap
+    if (startTime && endTime) {
+      for (const existing of existingOnDate) {
+        // Skip current editing activity
+        if (isEditing && existing.id === activity?.id) continue;
+
+        const existingStart = existing.startTime;
+        const existingEnd = existing.endTime;
+
+        if (existingStart && existingEnd) {
+          // Check if times overlap
+          // Overlap occurs when: (start1 < end2) and (end1 > start2)
+          if (startTime < existingEnd && endTime > existingStart) {
+            const timeStr = existingStart && existingEnd 
+              ? ` "${existing.title}" is scheduled from ${existingStart} to ${existingEnd}` 
+              : ` "${existing.title}" is already booked`;
+            setVenueConflict(timeStr);
+            return;
+          }
+        }
+      }
+    }
+    
+    // If no times specified but activities exist on that date/venue
+    const hasUntimedActivity = existingOnDate.some((a: Activity) => !a.startTime && !a.endTime);
+    if (hasUntimedActivity) {
+      setVenueConflict(` Another activity is already scheduled at this venue on this date`);
+      return;
+    }
+
+    setVenueConflict(null);
   };
 
   const handleTagToggle = (tagId: string) => {
@@ -86,7 +156,7 @@ export default function ActivityForm() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.title || !formData.description || !formData.date || !formData.venue || formData.maxParticipants < 1) {
@@ -94,11 +164,16 @@ export default function ActivityForm() {
       return;
     }
 
-    setIsLoading(true);
+    if (venueConflict) {
+      toast.error("Please resolve the venue conflict before saving");
+      return;
+    }
 
-    setTimeout(() => {
+    setIsLoading(true);
+    
+    try {
       if (isEditing && activity) {
-        updateActivity(activity.id, formData);
+        await updateActivity(activity.id, formData);
         toast.success("Activity updated successfully!");
       } else {
         const newActivity: Activity = {
@@ -107,6 +182,8 @@ export default function ActivityForm() {
           description: formData.description,
           category: formData.category,
           date: formData.date,
+          startTime: formData.startTime,
+          endTime: formData.endTime,
           venue: formData.venue,
           maxParticipants: formData.maxParticipants,
           tags: formData.tags,
@@ -117,8 +194,7 @@ export default function ActivityForm() {
           createdBy: user?.id || "admin",
           createdAt: new Date().toISOString(),
         };
-        addActivity(newActivity);
-        // Send notification to all students
+        await addActivity(newActivity);
         addBroadcastNotification(
           "New Activity Available!",
           `A new activity "${formData.title}" has been created. Check it out!`,
@@ -126,10 +202,12 @@ export default function ActivityForm() {
         );
         toast.success("Activity created successfully!");
       }
-
-      setIsLoading(false);
       navigate("/activities");
-    }, 600);
+    } catch (error) {
+      toast.error("Failed to save activity");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -169,8 +247,9 @@ export default function ActivityForm() {
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Category <span className="text-red-500">*</span>
               </label>
-              <select
+<select
                 name="category"
+                aria-label="Select activity category"
                 value={formData.category}
                 onChange={handleChange}
                 className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 h-11"
@@ -266,6 +345,43 @@ export default function ActivityForm() {
                 />
               </div>
             </div>
+
+            {/* Time Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Start Time <span className="text-muted-foreground">(Optional)</span>
+                </label>
+                <Input 
+                  type="time" 
+                  name="startTime" 
+                  value={formData.startTime} 
+                  onChange={handleChange} 
+                  className="h-11" 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  End Time <span className="text-muted-foreground">(Optional)</span>
+                </label>
+                <Input 
+                  type="time" 
+                  name="endTime" 
+                  value={formData.endTime} 
+                  onChange={handleChange} 
+                  className="h-11" 
+                />
+              </div>
+            </div>
+
+            {/* Venue Conflict Warning */}
+            {venueConflict && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  ⚠️ Venue Conflict: {venueConflict}
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">

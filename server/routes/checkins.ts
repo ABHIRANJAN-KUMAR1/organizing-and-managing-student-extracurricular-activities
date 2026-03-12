@@ -66,11 +66,36 @@ router.post("/", (req, res) => {
     if (existingCheckIn.length > 0) {
       return res.status(400).json({ error: "Already checked in" });
     }
+
+    // === TIME WINDOW VALIDATION ===
+    const now = new Date();
+    const activityDate = new Date(activity.date);
+    activityDate.setHours(10, 0, 0, 0); // Default start 10AM
+    const activityEnd = new Date(activity.date);
+    activityEnd.setHours(18, 0, 0, 0); // Default end 6PM
+    
+    // Parse start/end times if set
+    if (activity.startTime) {
+      const [h, m] = activity.startTime.split(':').map(Number);
+      activityDate.setHours(h, m, 0, 0);
+    }
+    if (activity.endTime) {
+      const [h, m] = activity.endTime.split(':').map(Number);
+      activityEnd.setHours(h, m, 0, 0);
+    }
+    
+    if (now < activityDate || now > activityEnd) {
+      return res.status(400).json({ 
+        error: "Check-in only allowed during event time window",
+        windowStart: activityDate.toISOString(),
+        windowEnd: activityEnd.toISOString()
+      });
+    }
     
     const checkIn = {
       id: `checkin_${Date.now()}`,
       ...data,
-      checkedInAt: new Date().toISOString(),
+      checkedInAt: now.toISOString(),
     };
     
     checkInsDb.create(checkIn);

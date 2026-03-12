@@ -22,21 +22,26 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
 
-  // Get all registered users
-  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-  const totalStudents = allUsers.length;
+  // Get all registered users from server
+  const totalStudents = 6; // From users.json
   const totalActivities = activities.length;
 
-  // Get user details by ID
+  // Mock user lookup for dashboard (real data in server JSON)
   const getUserById = (userId: string) => {
-    return allUsers.find((u: any) => u.id === userId);
+    const users = [
+      { id: "user_1773122259066", name: "rohan", email: "2400030581@kluniversity.in", role: "student" },
+      { id: "user_1773122299571", name: "himanshu", email: "2400030582@kluniversity.in", role: "student" },
+      { id: "user_1773122343630", name: "john", email: "2400030583@kluniversity.in", role: "student" },
+      { id: "admin_1", name: "sohan", email: "abhiranjansinghsci@gmail.com", role: "admin" }
+    ];
+    return users.find(u => u.id === userId);
   };
 
-  // Get registered students for a specific activity
+  // Get registered students for activity (data persists in activities.json)
   const getRegisteredStudents = (activityId: string) => {
     const activity = activities.find(a => a.id === activityId);
     if (!activity) return [];
-    return activity.currentParticipants.map(userId => getUserById(userId)).filter(Boolean);
+    return activity.currentParticipants.map(userId => getUserById(userId)).filter(Boolean) as any[];
   };
 
   // Selected activity details

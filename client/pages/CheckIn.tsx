@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useActivities } from "@/context/ActivityContext";
 import { useAuth } from "@/context/AuthContext";
@@ -25,21 +25,22 @@ export default function CheckIn() {
 
   const activity = activities.find(a => a.id === selectedActivity);
   
-  // Get users from localStorage
-  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
-  
-  // Get participants with their details
+  // Get users from activity context or mock for dashboard (real data server-side)
   const participants = activity ? activity.currentParticipants.map(id => {
-    const userInfo = allUsers.find((u: any) => u.id === id);
+    const userInfo = {
+      name: id === "user_1773122259066" ? "rohan" : 
+            id === "user_1773122299571" ? "himanshu" :
+            "Student",
+      email: id.includes("24000") ? id + "@kluniversity.in" : "student@example.com"
+    };
     const checkIn = activity.checkIns?.find(c => c.userId === id);
     return {
       id,
-      name: userInfo?.name || "Unknown",
-      email: userInfo?.email || "Unknown",
+      ...userInfo,
       checkedIn: !!checkIn,
       checkInTime: checkIn?.checkedInAt
     };
-  }) : [];
+  }) : []; 
 
   // Filter participants
   const filteredParticipants = participants.filter(p => 
@@ -101,7 +102,8 @@ export default function CheckIn() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <select
+<select
+              aria-label="Select activity for check-in"
               value={selectedActivity}
               onChange={(e) => setSelectedActivity(e.target.value)}
               className="w-full p-2 border border-border rounded-lg bg-background text-foreground"

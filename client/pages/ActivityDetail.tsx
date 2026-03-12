@@ -240,6 +240,24 @@ export default function ActivityDetail() {
                   </div>
                 </div>
 
+                {/* Time Display */}
+                {(activity.startTime || activity.endTime) && (
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="font-medium text-foreground">
+                        {activity.startTime && activity.endTime 
+                          ? `${activity.startTime} - ${activity.endTime}`
+                          : activity.startTime 
+                            ? `${activity.startTime}`
+                            : `${activity.endTime}`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-blue-500" />
                   <div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { ActivityCard } from "@/components/ActivityCard";
+import { RecommendedActivities } from "@/components/RecommendedActivities";
 import { useActivities } from "@/context/ActivityContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -151,6 +152,13 @@ export default function Activities() {
             </Button>
           )}
         </div>
+
+        {/* Recommendations for Students */}
+        {!isAdmin && (
+          <div className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-xl p-4 border">
+            <RecommendedActivities showTitle={true} maxItems={6} />
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4">

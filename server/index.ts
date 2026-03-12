@@ -16,6 +16,7 @@ import remindersRouter from "./routes/reminders";
 import activityHistoryRouter from "./routes/activityHistory";
 import analyticsRouter from "./routes/analytics";
 import calendarRouter from "./routes/calendar";
+import userPreferencesRouter from "./routes/userPreferences";
 
 export function createServer() {
   const app = express();
@@ -48,6 +49,7 @@ export function createServer() {
   app.use("/api/activity-history", activityHistoryRouter);
   app.use("/api/analytics", analyticsRouter);
   app.use("/api/calendar", calendarRouter);
+  app.use("/api/user-preferences", userPreferencesRouter);
 
   return app;
 }

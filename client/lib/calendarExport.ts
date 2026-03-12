@@ -5,8 +5,22 @@ import { Activity } from "@/types";
  */
 export const generateICalEvent = (activity: Activity): string => {
   const startDate = new Date(activity.date);
-  // Assume activity lasts 2 hours
-  const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  
+  // Use activity's startTime if available, otherwise use midnight
+  if (activity.startTime) {
+    const [hours, minutes] = activity.startTime.split(":");
+    startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  }
+  
+  // Calculate end date - use activity's endTime if available, otherwise assume 2 hours
+  let endDate: Date;
+  if (activity.endTime) {
+    endDate = new Date(activity.date);
+    const [endHours, endMinutes] = activity.endTime.split(":");
+    endDate.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+  } else {
+    endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  }
 
   const formatICalDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -64,7 +78,22 @@ export const downloadICalEvent = (activity: Activity): void => {
  */
 export const generateGoogleCalendarUrl = (activity: Activity): string => {
   const startDate = new Date(activity.date);
-  const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  
+  // Use activity's startTime if available
+  if (activity.startTime) {
+    const [hours, minutes] = activity.startTime.split(":");
+    startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  }
+  
+  // Calculate end date
+  let endDate: Date;
+  if (activity.endTime) {
+    endDate = new Date(activity.date);
+    const [endHours, endMinutes] = activity.endTime.split(":");
+    endDate.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+  } else {
+    endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  }
 
   const formatGoogleDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -86,7 +115,22 @@ export const generateGoogleCalendarUrl = (activity: Activity): string => {
  */
 export const generateOutlookCalendarUrl = (activity: Activity): string => {
   const startDate = new Date(activity.date);
-  const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  
+  // Use activity's startTime if available
+  if (activity.startTime) {
+    const [hours, minutes] = activity.startTime.split(":");
+    startDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  }
+  
+  // Calculate end date
+  let endDate: Date;
+  if (activity.endTime) {
+    endDate = new Date(activity.date);
+    const [endHours, endMinutes] = activity.endTime.split(":");
+    endDate.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+  } else {
+    endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  }
 
   const formatOutlookDate = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";

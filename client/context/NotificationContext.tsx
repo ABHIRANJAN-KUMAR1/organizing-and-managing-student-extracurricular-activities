@@ -111,10 +111,22 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     
     // Save to broadcast storage (shared between all users)
     const broadcastNotifications = JSON.parse(localStorage.getItem(BROADCAST_NOTIFICATIONS_KEY) || "[]");
+    
+    // Check if this notification already exists (prevent duplicates)
+    const isDuplicate = broadcastNotifications.some(
+      (n: Notification) => n.title === title && n.message === message && 
+      new Date(n.createdAt).getTime() > Date.now() - 5000 // Within last 5 seconds
+    );
+    
+    if (isDuplicate) {
+      console.log("Duplicate notification skipped");
+      return;
+    }
+    
     const updatedBroadcastNotifications = [newNotification, ...broadcastNotifications];
     localStorage.setItem(BROADCAST_NOTIFICATIONS_KEY, JSON.stringify(updatedBroadcastNotifications));
     
-    // Also add to current state
+    // Update state so UI reflects the new notification
     setNotifications((prev) => [newNotification, ...prev]);
   };
 
