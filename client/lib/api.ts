@@ -130,9 +130,15 @@ export const checkInsApi = {
   getByUser: (userId: string) => apiCall(`/checkins/user/${userId}`),
   checkIn: (data: { userId: string; userName: string; activityId: string; checkedInBy: string }) =>
     apiCall("/checkins", { method: "POST", body: JSON.stringify(data) }),
+  bulkCheckIn: (data: { activityId: string; userIds: string[]; checkedInBy: string }) =>
+    apiCall("/checkins/bulk", { method: "POST", body: JSON.stringify(data) }),
   checkOut: (id: string) => apiCall(`/checkins/${id}/checkout`, { method: "POST" }),
   delete: (id: string) => apiCall(`/checkins/${id}`, { method: "DELETE" }),
+  generateQrToken: (activityId: string) => apiCall(`/checkins/qr-token/${activityId}`, { method: "POST" }),
+  qrCheckIn: (data: { token: string; userId: string }) => apiCall("/checkins/qr-checkin", { method: "POST", body: JSON.stringify(data) }),
+  getReport: (activityId: string) => apiCall(`/checkins/report/${activityId}`),
 };
+
 
 // Tags API
 export const tagsApi = {

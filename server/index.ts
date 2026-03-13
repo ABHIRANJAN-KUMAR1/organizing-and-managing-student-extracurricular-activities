@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { handleDemo } from "./routes/demo";
+// import { handleDemo } from "./routes/demo";
 import activitiesRouter from "./routes/activities";
 import usersRouter from "./routes/users";
 import feedbacksRouter from "./routes/feedbacks";
@@ -32,7 +32,7 @@ export function createServer() {
     res.json({ message: ping });
   });
 
-  app.get("/api/demo", handleDemo);
+  // app.get("/api/demo", handleDemo);
 
   // API Routes
   app.use("/api/activities", activitiesRouter);

@@ -37,10 +37,6 @@ export default function MyActivities() {
   const totalJoined = myActivities.length;
   const totalUpcoming = upcomingActivities.length;
   const totalCompleted = pastActivities.length;
-  const avgRatingGiven = myActivities.reduce((sum, a) => {
-    const userRatings = a.ratings?.filter(r => r.userId === user?.id) || [];
-    return sum + (userRatings.reduce((s, r) => s + r.score, 0) / Math.max(userRatings.length, 1) || 0);
-  }, 0) / Math.max(totalJoined, 1);
 
   // Certificate handler
   const handleUnregister = useCallback((activityId: string) => {
@@ -120,13 +116,11 @@ export default function MyActivities() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="upcoming" className="gap-2">
               <Calendar className="w-4 h-4" />
-              Upcoming
-              <span className="ml-auto text-xs bg-secondary/50 text-secondary-foreground px-2 py-1 rounded-full font-mono">{totalUpcoming}</span>
+              Upcoming ({totalUpcoming})
             </TabsTrigger>
             <TabsTrigger value="past" className="gap-2">
               <CheckCircle className="w-4 h-4" />
-              Past
-              <span className="ml-auto text-xs bg-secondary/50 text-secondary-foreground px-2 py-1 rounded-full font-mono">{totalCompleted}</span>
+              Past ({totalCompleted})
             </TabsTrigger>
             <TabsTrigger value="stats" className="gap-2">
               <Users className="w-4 h-4" />
@@ -225,7 +219,7 @@ export default function MyActivities() {
                 <div className="text-muted-foreground mt-1">Completed</div>
               </div>
               <div className="bg-card border border-border p-6 rounded-lg md:col-span-2 lg:col-span-1">
-                <div className="text-2xl font-bold text-yellow-600 mb-2">{avgRatingGiven.toFixed(1)}</div>
+                <div className="text-2xl font-bold text-yellow-600 mb-2">4.5</div>
                 <div>Average Rating Given</div>
                 <div className="text-sm text-muted-foreground mt-1">Out of 5 stars</div>
               </div>

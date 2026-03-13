@@ -95,6 +95,11 @@ export const Sidebar = () => {
           icon: Activity,
         },
         {
+          name: "My Activities",
+          path: "/my-activities",
+          icon: BookOpen,
+        },
+        {
           name: "Calendar",
           path: "/activities/calendar",
           icon: Calendar,
